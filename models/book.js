@@ -25,6 +25,12 @@ module.exports = (sequelize, DataTypes) => {
         as: "buyers",
         onDelete: "CASCADE",
       });
+      Book.belongsToMany(models.Genre, {
+        through: models.BookGenre,
+        foreignKey: "bookId",
+        as: "genres",
+        onDelete: "CASCADE",
+      });
     }
   }
   Book.init(

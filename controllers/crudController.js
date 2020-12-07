@@ -5,7 +5,7 @@ exports.createUser = async (request, response) => {
   const {
     body: { login, email, password },
   } = request;
-  console.log(login, email, password);
+
   {
     try {
       if (password.length < 6) {
@@ -13,7 +13,7 @@ exports.createUser = async (request, response) => {
         return;
       }
 
-      const userExist = await db.User.findOne({ where: { email: email } });
+      const userExist = await db.User.findOne({ where: { email } });
 
       if (userExist !== null) {
         response.status(400).send("User already exists");
@@ -127,7 +127,7 @@ exports.updateUser = async (request, response) => {
 
   try {
     const user = await db.User.findOne({ where: id });
-    if (!user) {
+    if (user === null) {
       response.status(404).send(`User not found`);
       return;
     }

@@ -26,7 +26,7 @@ exports.toFavorites = async (request, response) => {
       const book = await db.Book.findOne({ where: { id: bookId } });
       await user.removeFavorite([book]);
 
-      const newUser = await db.User.findOne({
+      const currentUser = await db.User.findOne({
         where: { id: userId },
         include: [
           {
@@ -35,19 +35,19 @@ exports.toFavorites = async (request, response) => {
           },
         ],
       });
-
-      response.status(200).send({ favorites: newUser.favorites });
+      const { favorites } = currentUser;
+      response.status(200).send({ favorites });
       return;
     }
-    const user = await db.User.findOne({
+    let currentUser = await db.User.findOne({
       where: { id: userId },
     });
 
     const book = await db.Book.findOne({ where: { id: bookId } });
 
-    await user.addFavorite([book]);
+    await currentUser.addFavorite([book]);
 
-    const newUser = await db.User.findOne({
+    currentUser = await db.User.findOne({
       where: { id: userId },
       include: [
         {
@@ -56,8 +56,8 @@ exports.toFavorites = async (request, response) => {
         },
       ],
     });
-
-    response.status(200).send({ favorites: newUser.favorites });
+    const { favorites } = currentUser;
+    response.status(200).send({ favorites });
   } catch (err) {
     console.error("ERROR >>>>", err);
   }
@@ -68,14 +68,14 @@ exports.toShoplist = async (request, response) => {
     const {
       body: { userId, bookId },
     } = request;
-    const favorite = await db.BookUserShoplist.findOne({
+    const shoplistItem = await db.BookUserShoplist.findOne({
       where: {
         userId,
         bookId,
       },
     });
 
-    if (favorite !== null) {
+    if (shoplistItem !== null) {
       const user = await db.User.findOne({
         where: { id: userId },
         include: [
@@ -88,7 +88,7 @@ exports.toShoplist = async (request, response) => {
       const book = await db.Book.findOne({ where: { id: bookId } });
       await user.removeShoplist([book]);
 
-      const newUser = await db.User.findOne({
+      const currentUser = await db.User.findOne({
         where: { id: userId },
         include: [
           {
@@ -97,19 +97,20 @@ exports.toShoplist = async (request, response) => {
           },
         ],
       });
+      const { shoplist } = currentUser;
 
-      response.status(200).send({ shoplist: newUser.shoplist });
+      response.status(200).send({ shoplist });
       return;
     }
-    const user = await db.User.findOne({
+    let currentUser = await db.User.findOne({
       where: { id: userId },
     });
 
     const book = await db.Book.findOne({ where: { id: bookId } });
 
-    await user.addShoplist([book]);
+    await currentUser.addShoplist([book]);
 
-    const newUser = await db.User.findOne({
+    currentUser = await db.User.findOne({
       where: { id: userId },
       include: [
         {
@@ -119,7 +120,8 @@ exports.toShoplist = async (request, response) => {
       ],
     });
 
-    response.status(200).send({ shoplist: newUser.shoplist });
+    const { shoplist } = currentUser;
+    response.status(200).send({ shoplist });
   } catch (err) {
     console.error("ERROR >>>>", err);
   }
@@ -134,7 +136,7 @@ exports.addReview = async (request, response) => {
       where: { bookId, userId },
     });
 
-    if (existingReview) {
+    if (existingReview !== null) {
       await existingReview.update(
         {
           text: text || existingReview.text,
@@ -167,7 +169,7 @@ exports.addReview = async (request, response) => {
 
     const book = await db.Book.findOne({ where: { id: bookId } });
 
-    if (!book) {
+    if (book === null) {
       response.status(404).send(`Book id ${bookId} not found`);
       return;
     }

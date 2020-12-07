@@ -1,5 +1,4 @@
 const db = require("../models/index");
-const utils = require("../utils.js");
 
 exports.getBooks = async (request, response) => {
   try {
@@ -8,21 +7,36 @@ exports.getBooks = async (request, response) => {
       body: { filter, genre },
     } = request;
 
+    let sort = filter === "price" ? "DESC" : "ASC";
+
     if (genre === "all") {
-      books = await db.Book.findAll({ raw: true });
+      books = await db.Book.findAll({ order: [[filter, sort]] });
     } else {
-      let genres = await db.Genre.findOne({ where: { value: genre } });
-      books = await db.Book.findAll({ where: { id: genres.booksId } });
+      const searchedGenre = await db.Genre.findOne({ where: { value: genre } });
+      const { id } = searchedGenre;
+      const books = await db.Book.findAll({
+        order: [[filter, sort]],
+        include: [
+          {
+            model: db.Genre,
+            as: "genres",
+            through: { where: { genreId: id } },
+            required: true,
+          },
+        ],
+      });
+
+      response.status(200).send(books);
+      return;
     }
 
-    if (!books) {
+    if (books === null) {
       response
         .status(404)
         .send("No data in the database. Books should be added first");
       return;
     }
 
-    utils.sortingType(books, filter);
     response.status(200).send(books);
   } catch (err) {
     response.status(400).send("Something went terribly wrong");
@@ -39,7 +53,7 @@ exports.getOneBook = async (request, response) => {
       where: searchedValue,
     });
 
-    if (!book) {
+    if (book === null) {
       response
         .status(404)
         .send("No data in the database. Books should be added first");
@@ -70,7 +84,7 @@ exports.createBook = async (request, response) => {
       picture,
     });
 
-    if (!book) {
+    if (book === null) {
       response.srtatus(400).send("Ошибка при загрузке файла");
       return;
     }
@@ -79,24 +93,8 @@ exports.createBook = async (request, response) => {
     } = request;
 
     const newGenre = await db.Genre.findOne({ where: { value: genre } });
+    book.addGenre(newGenre);
 
-    if (newGenre) {
-      await newGenre.update(
-        {
-          booksId: [...newGenre.booksId, book.id],
-        },
-        {
-          where: {
-            value: genre,
-          },
-        }
-      );
-    } else {
-      await db.Genre.create({
-        genre,
-        booksId: [book.id],
-      });
-    }
     response.send(book);
   } catch (err) {
     response.status(400).send("Something went terribly wrong");
@@ -143,7 +141,7 @@ exports.changeBook = async (request, response) => {
     const searchedValue = { id };
     const book = await db.Book.findOne({ where: searchedValue });
 
-    if (!book) {
+    if (book === null) {
       response.status(404).send(`Book not found`);
       return;
     }
@@ -174,7 +172,7 @@ exports.getGenres = async (request, response) => {
   try {
     let genres = await db.Genre.findAll({ raw: true });
 
-    if (!genres) {
+    if (genres === null) {
       response
         .status(404)
         .send("No data in the database. Genres should be added first");
