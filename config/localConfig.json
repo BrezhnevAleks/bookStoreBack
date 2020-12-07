@@ -1,0 +1,9 @@
+{
+  "hash": {
+    "type" : "sha256", 
+    "key" : "notsecretword"
+  },
+  "token": {
+    "secret": "notsecretword"
+  }
+}
