@@ -1,32 +1,34 @@
 const express = require("express");
+
 const bookController = require("../controllers/bookController.js");
-const bookRouter = express.Router();
 const upload = require("../middleware/bookCoverUpload.js");
 const middleware = require("../middleware/tokenChecking.js");
 
+const bookRouter = express.Router();
+
 bookRouter.post("/one", middleware.tokenChecking, bookController.getOneBook);
-bookRouter.post("/", middleware.tokenChecking, bookController.getBooks);
+bookRouter.get("/", middleware.tokenChecking, bookController.getBooks);
 bookRouter.post(
   "/newbook",
   middleware.tokenChecking,
   upload.upload,
-  bookController.createBook
+  bookController.createBook,
 );
 bookRouter.post(
   "/changebook",
   middleware.tokenChecking,
   upload.upload,
-  bookController.changeBook
+  bookController.changeBook,
 );
 bookRouter.post(
   "/reviews",
   middleware.tokenChecking,
-  bookController.getReviews
+  bookController.getReviews,
 );
 bookRouter.get(
   "/getgenres",
   middleware.tokenChecking,
-  bookController.getGenres
+  bookController.getGenres,
 );
 
 module.exports = bookRouter;

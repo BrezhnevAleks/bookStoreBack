@@ -1,5 +1,4 @@
 const utils = require("../utils");
-const db = require("../models/index");
 
 module.exports.tokenChecking = (request, response, next) => {
   const {
@@ -8,9 +7,8 @@ module.exports.tokenChecking = (request, response, next) => {
 
   try {
     utils.verifyToken(authorization);
+    next();
   } catch (err) {
     return response.status(403).send("Token must be provided");
   }
-
-  return next();
 };

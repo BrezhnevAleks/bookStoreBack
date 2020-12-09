@@ -1,14 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
+
 const userRouter = require("./routes/userRouter");
 const bookRouter = require("./routes/bookRouter");
 const crudRouter = require("./routes/crudRouter");
-const cors = require("cors");
-const app = express();
 
-app.listen(4000, function () {
-  console.log("Сервер запущен...");
-});
+const app = express();
 
 app.use(cors());
 
@@ -19,3 +17,5 @@ app.use(express.static("uploads"));
 app.use("/crud", crudRouter);
 app.use("/users", userRouter);
 app.use("/books", bookRouter);
+
+module.exports = app;

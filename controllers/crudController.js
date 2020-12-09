@@ -2,51 +2,49 @@ const utils = require("../utils.js");
 const db = require("../models/index");
 
 exports.createUser = async (request, response) => {
-  const {
-    body: { login, email, password },
-  } = request;
+  try {
+    const {
+      body: { login, email, password },
+    } = request;
 
-  {
-    try {
-      if (password.length < 6) {
-        response.status(400).send("Password is too short");
-        return;
-      }
+    if (password.length < 6) {
+      response.status(400).send("Password is too short");
+      return;
+    }
 
-      const userExist = await db.User.findOne({ where: { email } });
+    const userExist = await db.User.findOne({ where: { email } });
 
-      if (userExist !== null) {
-        response.status(400).send("User already exists");
-        return;
-      }
+    if (userExist !== null) {
+      response.status(400).send("User already exists");
+      return;
+    }
 
-      let user = await db.User.create({
+    let user = await db.User.create({
+      login,
+      email,
+      password: utils.cipher(password),
+    });
+
+    const createdToken = utils.createToken(user.id);
+    user = await db.User.findOne({
+      where: {
         login,
         email,
-        password: utils.cipher(password),
-      });
-
-      const createdToken = utils.createToken(user.id);
-      user = await db.User.findOne({
-        where: {
-          login,
-          email,
+      },
+      include: [
+        {
+          model: db.Book,
+          as: "favorites",
         },
-        include: [
-          {
-            model: db.Book,
-            as: "favorites",
-          },
-          {
-            model: db.Book,
-            as: "products",
-          },
-        ],
-      });
-      response.send({ user: user, token: createdToken });
-    } catch (err) {
-      response.status(500).send("Something went wrong");
-    }
+        {
+          model: db.Book,
+          as: "shoplist",
+        },
+      ],
+    });
+    response.send({ user, token: createdToken });
+  } catch (err) {
+    response.status(500).send("Something went wrong");
   }
 };
 
@@ -82,7 +80,7 @@ exports.loginUser = async (request, response) => {
     }
 
     const createdtoken = utils.createToken(user.id);
-    response.send({ user: user, token: createdtoken });
+    response.send({ user, token: createdtoken });
   } catch (err) {
     console.error("ERROR >>>>", err);
     response.status(500).send("Something went wrong");
@@ -113,8 +111,10 @@ exports.getByToken = async (request, response) => {
       return;
     }
 
+    // const userObject = user.toJSON();
+
     const createdtoken = utils.createToken(user.id);
-    response.send({ user: user });
+    response.send({ user, token: createdtoken });
   } catch (err) {
     response.status(500).send("Something went wrong");
   }
@@ -128,7 +128,7 @@ exports.updateUser = async (request, response) => {
   try {
     const user = await db.User.findOne({ where: id });
     if (user === null) {
-      response.status(404).send(`User not found`);
+      response.status(404).send("User not found");
       return;
     }
 
@@ -140,10 +140,10 @@ exports.updateUser = async (request, response) => {
       },
       {
         where: id,
-      }
+      },
     );
-    response.send({ user: user });
+    response.send({ user });
   } catch (err) {
-    response.status(500).send(`Something went wrong`);
+    response.status(500).send("Something went wrong");
   }
 };

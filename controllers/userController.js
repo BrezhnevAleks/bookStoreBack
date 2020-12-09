@@ -1,4 +1,3 @@
-const utils = require("../utils.js");
 const db = require("../models/index");
 
 exports.toFavorites = async (request, response) => {
@@ -6,6 +5,7 @@ exports.toFavorites = async (request, response) => {
     const {
       body: { userId, bookId },
     } = request;
+
     const favorite = await db.BookUserFavorites.findOne({
       where: {
         userId,
@@ -142,7 +142,7 @@ exports.addReview = async (request, response) => {
           text: text || existingReview.text,
           rating: rating || existingReview.rating,
         },
-        { where: { bookId, userId } }
+        { where: { bookId, userId } },
       );
     } else {
       await db.Review.create({
@@ -161,9 +161,9 @@ exports.addReview = async (request, response) => {
         attributes: ["login"],
       },
     });
-    let rated = await reviews.filter((item) => item.rating != null);
+    const rated = await reviews.filter((item) => item.rating != null);
 
-    let rate = (
+    const rate = (
       rated.reduce((acc, item) => acc + item.rating, 0) / rated.length
     ).toFixed(2);
 

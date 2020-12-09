@@ -1,5 +1,4 @@
-"use strict";
-
+/* eslint-disable no-unused-vars */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert("Genres", [

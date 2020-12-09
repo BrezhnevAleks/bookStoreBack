@@ -1,5 +1,5 @@
-"use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class BookUserFavorites extends Model {
     /**
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "BookUserFavorites",
-    }
+    },
   );
   return BookUserFavorites;
 };

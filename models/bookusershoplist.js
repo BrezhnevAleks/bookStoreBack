@@ -1,5 +1,5 @@
-"use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class BookUserShoplist extends Model {
     /**
@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "userId",
         as: "buyers",
       });
+
       BookUserShoplist.belongsTo(models.Book, {
         foreignKey: "bookId",
         as: "shoplist",
@@ -20,13 +21,17 @@ module.exports = (sequelize, DataTypes) => {
   }
   BookUserShoplist.init(
     {
-      bookId: DataTypes.INTEGER,
-      userId: DataTypes.INTEGER,
+      bookId: {
+        type: DataTypes.INTEGER,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+      },
     },
     {
       sequelize,
       modelName: "BookUserShoplist",
-    }
+    },
   );
   return BookUserShoplist;
 };

@@ -9,10 +9,18 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       bookId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: {
+          model: "Books",
+          key: 'id'
+        }
       },
       genreId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: {
+          model: "Genres",
+          key: 'id'
+        }
       },
       createdAt: {
         allowNull: false,

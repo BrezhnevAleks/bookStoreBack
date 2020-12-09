@@ -4,18 +4,24 @@ exports.getBooks = async (request, response) => {
   try {
     let books;
     const {
-      body: { filter, genre },
+      query: { filter, genre, page, pageCount },
     } = request;
+    console.log(request)
+    const sort = filter === "price" ? "DESC" : "ASC";
 
-    let sort = filter === "price" ? "DESC" : "ASC";
+    const bookCount = await db.Book.findAndCountAll();
+    const limit = Math.ceil(bookCount.count / pageCount);
+    const offset = limit * page;
 
     if (genre === "all") {
-      books = await db.Book.findAll({ order: [[filter, sort]] });
+      books = await db.Book.findAll({ limit, offset, order: [[filter, sort]] });
     } else {
       const searchedGenre = await db.Genre.findOne({ where: { value: genre } });
       const { id } = searchedGenre;
       const books = await db.Book.findAll({
         order: [[filter, sort]],
+        limit, 
+        offset,
         include: [
           {
             model: db.Genre,
@@ -39,6 +45,7 @@ exports.getBooks = async (request, response) => {
 
     response.status(200).send(books);
   } catch (err) {
+    console.log("ERR>>>>>>>", err)
     response.status(400).send("Something went terribly wrong");
   }
 };
@@ -68,12 +75,13 @@ exports.getOneBook = async (request, response) => {
 
 exports.createBook = async (request, response) => {
   try {
-    const url = request.protocol + "://" + request.get("host");
+    const url = `${request.protocol}://${request.get("host")}`;
     const {
       body: { name, author, price, description },
     } = request;
+    // eslint-disable-next-line no-prototype-builtins
     const picture = request.hasOwnProperty("file")
-      ? url + "/" + request.file.filename
+      ? `${url}/${request.file.filename}`
       : "picture";
 
     const book = await db.Book.create({
@@ -106,7 +114,7 @@ exports.getReviews = async (request, response) => {
     const {
       body: { bookId },
     } = request;
-    let allReviews = await db.Review.findAll({
+    const allReviews = await db.Review.findAll({
       where: { bookId },
       include: {
         model: db.User,
@@ -114,7 +122,7 @@ exports.getReviews = async (request, response) => {
         attributes: ["login"],
       },
     });
-    let rated = allReviews.filter((item) => item.rating != null);
+    const rated = allReviews.filter((item) => item.rating != null);
     let rate = null;
 
     if (rated.length) {
@@ -137,16 +145,17 @@ exports.changeBook = async (request, response) => {
       protocol,
       body: { id, name, author, price, description },
     } = request;
-    const url = protocol + "://" + request.get("host");
+    const url = `${protocol}://${request.get("host")}`;
     const searchedValue = { id };
     const book = await db.Book.findOne({ where: searchedValue });
 
     if (book === null) {
-      response.status(404).send(`Book not found`);
+      response.status(404).send("Book not found");
       return;
     }
+    // eslint-disable-next-line no-prototype-builtins
     const picture = request.hasOwnProperty("file")
-      ? url + "/" + request.file.filename
+      ? `${url}/${request.file.filename}`
       : book.picture;
 
     await db.Book.update(
@@ -159,7 +168,7 @@ exports.changeBook = async (request, response) => {
       },
       {
         where: { id },
-      }
+      },
     );
 
     response.send(book);
@@ -170,7 +179,7 @@ exports.changeBook = async (request, response) => {
 
 exports.getGenres = async (request, response) => {
   try {
-    let genres = await db.Genre.findAll({ raw: true });
+    const genres = await db.Genre.findAll({ raw: true });
 
     if (genres === null) {
       response

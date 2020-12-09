@@ -1,10 +1,9 @@
-"use strict";
-
+/* eslint-disable no-unused-vars */
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert("Books", [
       {
-        name: "Totally Cool Book",
+        name: "Book 1",
         author: "John Doe",
         picture: "picture",
         price: 999,
@@ -12,7 +11,7 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        name: "Another Cool Book",
+        name: "Another Book",
         author: "Don Johns",
         picture: "picture",
         price: 999,
@@ -20,7 +19,7 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        name: "Fun Cool Book",
+        name: "Book 2",
         author: "Don Johns",
         picture: "picture",
         price: 999,
@@ -28,7 +27,7 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        name: "Another Cool Book",
+        name: "Book 3",
         author: "Don Johns",
         picture: "picture",
         price: 999,
@@ -36,13 +35,54 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        name: "Interesting",
+        name: "Book 4",
         author: "Don Johns",
         picture: "picture",
         price: 999,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        name: "Book 5",
+        author: "John Doe",
+        picture: "picture",
+        price: 999,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: "Book 6",
+        author: "Don Johns",
+        picture: "picture",
+        price: 999,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: "Book 7",
+        author: "Don Johns",
+        picture: "picture",
+        price: 999,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: "Book 8",
+        author: "Don Johns",
+        picture: "picture",
+        price: 999,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: "Book 9",
+        author: "Don Johns",
+        picture: "picture",
+        price: 999,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+
     ]);
   },
   down: (queryInterface, Sequelize) => {

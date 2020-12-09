@@ -1,23 +1,14 @@
 const express = require("express");
 const userController = require("../controllers/userController.js");
+
 const userRouter = express.Router();
 const middleware = require("../middleware/tokenChecking.js");
 
-userRouter.post(
-  "/addtofavorites",
-  middleware.tokenChecking,
-  userController.toFavorites
-);
-userRouter.post(
-  "/addtoshoplist",
-  middleware.tokenChecking,
-  userController.toShoplist
-);
+userRouter.use(middleware.tokenChecking);
 
-userRouter.post(
-  "/addreview",
-  middleware.tokenChecking,
-  userController.addReview
-);
+userRouter.post("/addtofavorites", userController.toFavorites);
+userRouter.post("/addtoshoplist", userController.toShoplist);
+
+userRouter.post("/addreview", userController.addReview);
 
 module.exports = userRouter;
