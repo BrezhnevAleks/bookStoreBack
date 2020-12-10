@@ -2,9 +2,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-const userRouter = require("./routes/userRouter");
-const bookRouter = require("./routes/bookRouter");
-const crudRouter = require("./routes/crudRouter");
+const user = require("./routes/user");
+const book = require("./routes/book");
+const auth = require("./routes/auth");
+const booklists = require("./routes/booklists");
 
 const app = express();
 
@@ -14,8 +15,9 @@ app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static("uploads"));
 
-app.use("/crud", crudRouter);
-app.use("/users", userRouter);
-app.use("/books", bookRouter);
+app.use("/auth", auth);
+app.use("/users", user);
+app.use("/books", book);
+app.use("/booklists", booklists);
 
 module.exports = app;

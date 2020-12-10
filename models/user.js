@@ -30,14 +30,32 @@ module.exports = (sequelize, DataTypes) => {
   }
   User.init(
     {
-      login: DataTypes.STRING,
-      password: DataTypes.STRING,
-      email: DataTypes.STRING,
+      login: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: {
+        type: DataTypes.STRING,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+        allowNull: false,
+      },
     },
     {
+      defaultScope: {
+        attributes: { exclude: ["password"] },
+      },
+
       sequelize,
       modelName: "User",
-    },
+    }
   );
   return User;
 };

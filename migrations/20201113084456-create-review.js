@@ -15,11 +15,14 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: "Books",
-          key: 'id'
-        }
+          key: "id",
+        },
       },
       text: {
         type: Sequelize.STRING,
+      },
+      rating: {
+        type: Sequelize.INTEGER,
       },
       createdAt: {
         allowNull: false,

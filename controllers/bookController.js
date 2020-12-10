@@ -3,71 +3,64 @@ const db = require("../models/index");
 exports.getBooks = async (request, response) => {
   try {
     let books;
-    const {
-      query: { filter, genre, page, pageCount },
-    } = request;
-    console.log(request)
+    const { filter, genre, page, perPage } = request.query;
     const sort = filter === "price" ? "DESC" : "ASC";
 
     const bookCount = await db.Book.findAndCountAll();
-    const limit = Math.ceil(bookCount.count / pageCount);
-    const offset = limit * page;
+    const pageCount = Math.ceil(bookCount.count / perPage);
+    const offset = perPage * (page - 1);
 
-    if (genre === "all") {
-      books = await db.Book.findAll({ limit, offset, order: [[filter, sort]] });
-    } else {
-      const searchedGenre = await db.Genre.findOne({ where: { value: genre } });
-      const { id } = searchedGenre;
-      const books = await db.Book.findAll({
-        order: [[filter, sort]],
-        limit, 
+    if (genre === "0") {
+      books = await db.Book.findAll({
+        limit: perPage,
         offset,
+        order: [[filter, sort]],
+      });
+    } else {
+      books = await db.Book.findAll({
+        limit: perPage,
+        offset,
+        order: [[filter, sort]],
         include: [
           {
             model: db.Genre,
             as: "genres",
-            through: { where: { genreId: id } },
+            through: { where: { genreId: genre } },
             required: true,
           },
         ],
       });
-
-      response.status(200).send(books);
-      return;
+      console.log(books, pageCount);
     }
 
-    if (books === null) {
-      response
-        .status(404)
-        .send("No data in the database. Books should be added first");
+    if (books) {
+      response.status(200).send({ books, pageCount });
       return;
     }
-
-    response.status(200).send(books);
+    response
+      .status(404)
+      .send("No data in the database. Books should be added first");
   } catch (err) {
-    console.log("ERR>>>>>>>", err)
-    response.status(400).send("Something went terribly wrong");
+    console.log("ERR>>>>>>>", err);
+    response.status(500).send("Something went terribly wrong");
   }
 };
 
 exports.getOneBook = async (request, response) => {
   try {
-    const {
-      body: { id },
-    } = request;
+    const { id } = request.query;
     const searchedValue = { id };
     const book = await db.Book.findOne({
       where: searchedValue,
     });
 
-    if (book === null) {
-      response
-        .status(404)
-        .send("No data in the database. Books should be added first");
+    if (book) {
+      response.status(200).send(book);
       return;
     }
-
-    response.status(200).send(book);
+    response
+      .status(404)
+      .send("No data in the database. Books should be added first");
   } catch (err) {
     response.status(400).send("Something went terribly wrong");
   }
@@ -77,7 +70,7 @@ exports.createBook = async (request, response) => {
   try {
     const url = `${request.protocol}://${request.get("host")}`;
     const {
-      body: { name, author, price, description },
+      body: { name, author, price, description, genre },
     } = request;
     // eslint-disable-next-line no-prototype-builtins
     const picture = request.hasOwnProperty("file")
@@ -92,18 +85,14 @@ exports.createBook = async (request, response) => {
       picture,
     });
 
-    if (book === null) {
-      response.srtatus(400).send("Ошибка при загрузке файла");
+    if (book) {
+      const newGenre = await db.Genre.findOne({ where: { value: genre } });
+      book.addGenre(newGenre);
+
+      response.send(book);
       return;
     }
-    const {
-      body: { genre },
-    } = request;
-
-    const newGenre = await db.Genre.findOne({ where: { value: genre } });
-    book.addGenre(newGenre);
-
-    response.send(book);
+    response.status(400).send("Ошибка при загрузке файла");
   } catch (err) {
     response.status(400).send("Something went terribly wrong");
   }
@@ -111,9 +100,7 @@ exports.createBook = async (request, response) => {
 
 exports.getReviews = async (request, response) => {
   try {
-    const {
-      body: { bookId },
-    } = request;
+    const { bookId } = request.query;
     const allReviews = await db.Review.findAll({
       where: { bookId },
       include: {
@@ -135,6 +122,7 @@ exports.getReviews = async (request, response) => {
 
     response.send({ reviews, rate });
   } catch (err) {
+    console.log(err);
     response.status(400).send("Something went terribly wrong");
   }
 };
@@ -149,29 +137,29 @@ exports.changeBook = async (request, response) => {
     const searchedValue = { id };
     const book = await db.Book.findOne({ where: searchedValue });
 
-    if (book === null) {
-      response.status(404).send("Book not found");
+    if (book) {
+      // eslint-disable-next-line no-prototype-builtins
+      const picture = request.hasOwnProperty("file")
+        ? `${url}/${request.file.filename}`
+        : book.picture;
+
+      await db.Book.update(
+        {
+          name,
+          author,
+          price,
+          description,
+          picture,
+        },
+        {
+          where: { id },
+        }
+      );
+
+      response.send(book);
       return;
     }
-    // eslint-disable-next-line no-prototype-builtins
-    const picture = request.hasOwnProperty("file")
-      ? `${url}/${request.file.filename}`
-      : book.picture;
-
-    await db.Book.update(
-      {
-        name,
-        author,
-        price,
-        description,
-        picture,
-      },
-      {
-        where: { id },
-      },
-    );
-
-    response.send(book);
+    response.status(404).send("Book not found");
   } catch (err) {
     response.status(400).send("Something went terribly wrong");
   }
@@ -181,14 +169,13 @@ exports.getGenres = async (request, response) => {
   try {
     const genres = await db.Genre.findAll({ raw: true });
 
-    if (genres === null) {
-      response
-        .status(404)
-        .send("No data in the database. Genres should be added first");
+    if (genres) {
+      response.status(200).send(genres);
       return;
     }
-
-    response.status(200).send(genres);
+    response
+      .status(404)
+      .send("No data in the database. Genres should be added first");
   } catch (err) {
     response.status(400).send("Something went terribly wrong");
   }
