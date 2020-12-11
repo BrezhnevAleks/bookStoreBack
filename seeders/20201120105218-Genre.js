@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface) => {
     return queryInterface.bulkInsert("Genres", [
       {
         value: "fantasy",
@@ -48,7 +47,7 @@ module.exports = {
     ]);
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     return queryInterface.bulkDelete("Genres", null, {});
   },
 };
