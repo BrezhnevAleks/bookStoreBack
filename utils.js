@@ -1,18 +1,11 @@
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const config = require("./config");
-const db = require("./models");
-
-module.exports.checkAndUpdate = async (id, val) => {
-  if (!val) return;
-  await db.User.update(val, {
-    where: id,
-  });
-};
+// const db = require("./models");
 
 module.exports.cipher = (pass) => {
   return crypto
-    .createHmac("sha256", "secretword")
+    .createHmac(config.hash.type, config.hash.key)
     .update(pass.trim())
     .digest("hex");
 };

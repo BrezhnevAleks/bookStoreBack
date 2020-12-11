@@ -7,8 +7,6 @@ const storage = multer.diskStorage({
         ? null
         : new Error("wrong file");
       cb(error, "./uploads");
-    } else {
-      return;
     }
   },
   filename: (req, file, cb) => {
@@ -20,5 +18,5 @@ const storage = multer.diskStorage({
 });
 
 module.exports.upload = multer({
-  storage: storage,
+  storage,
 }).single("bookcover");

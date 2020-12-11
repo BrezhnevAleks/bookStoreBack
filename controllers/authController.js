@@ -39,7 +39,7 @@ exports.createUser = async (request, response) => {
             as: "shoplist",
           },
         ],
-      }
+      },
     );
     const createdToken = utils.createToken(user.id);
     user = user.toJSON();
@@ -47,7 +47,6 @@ exports.createUser = async (request, response) => {
     response.send({ user, token: createdToken });
   } catch (err) {
     response.status(500).send("Something went wrong");
-    console.log(err);
   }
 };
 
@@ -63,40 +62,31 @@ exports.loginUser = async (request, response) => {
         include: ["password"],
       },
       include: [
-        {
-          model: db.Book,
-          as: "favorites",
-        },
+        // {
+        //   model: db.Book,
+        //   as: "favorites",
+        // },
         {
           model: db.Book,
           as: "shoplist",
         },
       ],
     });
-    if (user) {
-      if (user.password !== utils.cipher(password)) {
-        response.status(404).send("Invalid password");
-        return;
-      }
-      const { id } = user;
-      const createdtoken = utils.createToken(id);
-      user = await db.User.findByPk(id, {
-        include: [
-          {
-            model: db.Book,
-            as: "favorites",
-          },
-          {
-            model: db.Book,
-            as: "shoplist",
-          },
-        ],
-      });
-      response.send({ user, token: createdtoken });
+    if (!user) {
+      response.status(404).send("User not found");
       return;
     }
-
-    response.status(404).send("User not found");
+    if (user.password !== utils.cipher(password)) {
+      response.status(404).send("Invalid password");
+      return;
+    }
+    const { id, favorites, shoplist } = user;
+    const createdtoken = utils.createToken(id);
+    user = user.toJSON();
+    // delete user.password;
+    // delete user.favorites;
+    // delete user.shoplist;
+    response.send({ user, token: createdtoken, shoplist, favorites });
   } catch (err) {
     console.error("ERROR >>>>", err);
     response.status(500).send("Something went wrong");
@@ -106,10 +96,9 @@ exports.loginUser = async (request, response) => {
 exports.getByToken = async (request, response) => {
   try {
     const { authorization } = request.headers;
-    const id = utils.verifyToken(authorization).data;
+    const id = utils.verifyToken(authorization.slice(7)).data;
 
-    const user = await db.User.findOne({
-      where: { id },
+    const user = await db.User.findByPk(id, {
       include: [
         {
           model: db.Book,
@@ -122,14 +111,16 @@ exports.getByToken = async (request, response) => {
       ],
     });
 
-    if (user) {
-      const createdtoken = utils.createToken(user.id);
-      response.send({ user, token: createdtoken });
+    if (!user) {
+      response.status(404).send("User not found");
       return;
     }
-    response.status(404).send("User not found");
-    // const userObject = user.toJSON();
+    const createdtoken = utils.createToken(user.id);
+
+    response.send({ user, token: createdtoken });
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err);
     response.status(500).send("Something went wrong");
   }
 };

@@ -13,42 +13,7 @@ exports.toFavorites = async (request, response) => {
       },
     });
 
-    if (favorite) {
-      const user = await db.User.findOne({
-        where: { id: userId },
-        include: [
-          {
-            model: db.Book,
-            as: "favorites",
-          },
-        ],
-      });
-      const book = await db.Book.findOne({ where: { id: bookId } });
-      await user.removeFavorite([book]);
-
-      const currentUser = await db.User.findOne({
-        where: { id: userId },
-        include: [
-          {
-            model: db.Book,
-            as: "favorites",
-          },
-        ],
-      });
-      const { favorites } = currentUser;
-      response.status(200).send({ favorites });
-      return;
-    }
-    let currentUser = await db.User.findOne({
-      where: { id: userId },
-    });
-
-    const book = await db.Book.findOne({ where: { id: bookId } });
-
-    await currentUser.addFavorite([book]);
-
-    currentUser = await db.User.findOne({
-      where: { id: userId },
+    const user = await db.User.findByPk(userId, {
       include: [
         {
           model: db.Book,
@@ -56,10 +21,29 @@ exports.toFavorites = async (request, response) => {
         },
       ],
     });
-    const { favorites } = currentUser;
-    response.status(200).send({ favorites });
+    const book = await db.Book.findByPk(bookId);
+    if (favorite) {
+      await user.removeFavorite([book]);
+    } else {
+      await user.addFavorite([book]);
+    }
+    const currentUser = await db.User.findByPk(userId, {
+      include: [
+        {
+          model: db.Book,
+          as: "favorites",
+        },
+      ],
+    });
+    let { favorites } = currentUser;
+    favorites = favorites.map((book) => book.toJSON());
+    favorites = favorites.map((book) => {
+      book.favorite = true;
+      return book;
+    });
+    response.send({ favorites });
   } catch (err) {
-    console.error("ERROR >>>>", err);
+    response.status(500).send("Something went terribly wrong");
   }
 };
 
@@ -68,50 +52,15 @@ exports.toShoplist = async (request, response) => {
     const {
       body: { userId, bookId },
     } = request;
-    const shoplistItem = await db.BookUserShoplist.findOne({
+
+    const favorite = await db.BookUserShoplist.findOne({
       where: {
         userId,
         bookId,
       },
     });
 
-    if (shoplistItem) {
-      const user = await db.User.findOne({
-        where: { id: userId },
-        include: [
-          {
-            model: db.Book,
-            as: "shoplist",
-          },
-        ],
-      });
-      const book = await db.Book.findOne({ where: { id: bookId } });
-      await user.removeShoplist([book]);
-
-      const currentUser = await db.User.findOne({
-        where: { id: userId },
-        include: [
-          {
-            model: db.Book,
-            as: "shoplist",
-          },
-        ],
-      });
-      const { shoplist } = currentUser;
-
-      response.status(200).send({ shoplist });
-      return;
-    }
-    let currentUser = await db.User.findOne({
-      where: { id: userId },
-    });
-
-    const book = await db.Book.findOne({ where: { id: bookId } });
-
-    await currentUser.addShoplist([book]);
-
-    currentUser = await db.User.findOne({
-      where: { id: userId },
+    const user = await db.User.findByPk(userId, {
       include: [
         {
           model: db.Book,
@@ -119,11 +68,56 @@ exports.toShoplist = async (request, response) => {
         },
       ],
     });
-
+    const book = await db.Book.findByPk(bookId);
+    if (favorite) {
+      await user.removeShoplist([book]);
+    } else {
+      await user.addShoplist([book]);
+    }
+    const currentUser = await db.User.findByPk(userId, {
+      include: [
+        {
+          model: db.Book,
+          as: "shoplist",
+        },
+      ],
+    });
     const { shoplist } = currentUser;
-    response.status(200).send({ shoplist });
+    response.send({ shoplist });
   } catch (err) {
-    console.error("ERROR >>>>", err);
-    response.status(400).send("Something went terribly wrong");
+    response.status(500).send("Something went terribly wrong");
+  }
+};
+
+exports.getFavorites = async (request, response) => {
+  try {
+    const { id, page, perPage } = request.query;
+
+    const offset = Number(perPage) ? perPage * (page - 1) : null;
+    let favorites = await db.Book.findAndCountAll({
+      limit: Number(perPage) ? perPage : null,
+      offset,
+      include: [
+        {
+          model: db.Genre,
+          as: "genres",
+        },
+        {
+          model: db.User,
+          as: "users",
+          through: { where: { userId: id } },
+          required: true,
+        },
+      ],
+    });
+    const pageCount = Math.ceil(favorites.count / perPage);
+    favorites = favorites.rows.map((book) => book.toJSON());
+    favorites = favorites.map((book) => {
+      book.favorite = true;
+      return book;
+    });
+    response.send({ favorites, pageCount });
+  } catch (err) {
+    response.status(500).send("Something went terribly wrong");
   }
 };

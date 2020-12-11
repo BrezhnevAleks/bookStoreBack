@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("Books", {
@@ -20,8 +19,8 @@ module.exports = {
       price: {
         type: Sequelize.INTEGER,
       },
-      rating: { 
-        type: Sequelize.FLOAT, allowNull: true 
+      rating: {
+        type: Sequelize.FLOAT, allowNull: true,
       },
       description: {
         type: Sequelize.TEXT,
@@ -36,7 +35,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable("Books");
   },
 };

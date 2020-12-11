@@ -14,6 +14,7 @@ module.exports = {
     ecmaVersion: 2018,
   },
   rules: {
+    "no-param-reassign": ["error", { props: false }],
     quotes: ["error", "double"],
     "eol-last": ["error", "always"],
     semi: ["error", "always"],

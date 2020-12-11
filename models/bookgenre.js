@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       genreId: {
-       type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER,
       },
     },
     {

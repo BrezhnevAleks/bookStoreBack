@@ -8,5 +8,6 @@ booklists.use(middleware.tokenChecking);
 
 booklists.post("/addtofavorites", booklistsController.toFavorites);
 booklists.post("/addtoshoplist", booklistsController.toShoplist);
+booklists.get("/getfavorites", booklistsController.getFavorites);
 
 module.exports = booklists;
