@@ -34,13 +34,9 @@ exports.getBooks = async (request, response) => {
     books = books.map((book) => book.toJSON());
     books = books.map((book) => {
       book.favorite = !!book.users[0];
-      // eslint-disable-next-line no-console
-      console.log(book.users);
       delete book.users;
       return book;
     });
-    // eslint-disable-next-line no-console
-    console.log(books);
     response.send({ books, pageCount, bookCount: bookCount.count });
   } catch (err) {
     // eslint-disable-next-line no-console
