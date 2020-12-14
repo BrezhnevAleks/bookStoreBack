@@ -2,11 +2,11 @@ const express = require("express");
 
 const bookController = require("../controllers/bookController.js");
 const upload = require("../middleware/bookCoverUpload.js");
-const middleware = require("../middleware/tokenChecking.js");
+const middleware = require("../middleware/tokenAuth.js");
 
 const book = express.Router();
 
-book.use(middleware.tokenChecking);
+book.use(middleware.tokenAuth);
 
 book.get("/one", bookController.getOneBook);
 book.get("/", bookController.getBooks);

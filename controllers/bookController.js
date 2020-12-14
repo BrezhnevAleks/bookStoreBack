@@ -29,18 +29,24 @@ exports.getBooks = async (request, response) => {
           through: { where: { userId: id } },
           attributes: ["id"],
         },
+        {
+          model: db.User,
+          as: "buyers",
+          through: { where: { userId: id } },
+          attributes: ["id"],
+        },
       ],
     });
     books = books.map((book) => book.toJSON());
     books = books.map((book) => {
       book.favorite = !!book.users[0];
+      book.inShopList = !!book.buyers[0];
+      delete book.buyers;
       delete book.users;
       return book;
     });
     response.send({ books, pageCount, bookCount: bookCount.count });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log(err);
     response.status(500).send("Something went terribly wrong");
   }
 };

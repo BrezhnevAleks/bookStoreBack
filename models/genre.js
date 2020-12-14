@@ -12,7 +12,6 @@ module.exports = (sequelize, DataTypes) => {
         through: models.BookGenre,
         foreignKey: "genreId",
         as: "books",
-        onDelete: "CASCADE",
       });
     }
   }

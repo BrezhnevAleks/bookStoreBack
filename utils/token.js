@@ -1,14 +1,5 @@
-const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const config = require("./config");
-// const db = require("./models");
-
-module.exports.cipher = (pass) => {
-  return crypto
-    .createHmac(config.hash.type, config.hash.key)
-    .update(pass.trim())
-    .digest("hex");
-};
+const config = require("../config");
 
 module.exports.createToken = (information) => {
   return jwt.sign(

@@ -1,5 +1,6 @@
-const utils = require("../utils.js");
+const tokenCheck = require("../utils/token.js");
 const db = require("../models/index");
+const pass = require("../utils/password.js");
 
 exports.createUser = async (request, response) => {
   try {
@@ -24,24 +25,10 @@ exports.createUser = async (request, response) => {
       {
         login,
         email,
-        password: utils.cipher(password),
-        favorites: [],
-        shoplist: [],
-      },
-      {
-        include: [
-          {
-            model: db.Book,
-            as: "favorites",
-          },
-          {
-            model: db.Book,
-            as: "shoplist",
-          },
-        ],
+        password: pass.cipher(password),
       },
     );
-    const createdToken = utils.createToken(user.id);
+    const createdToken = tokenCheck.createToken(user.id);
     user = user.toJSON();
     delete user.password;
     response.send({ user, token: createdToken });
@@ -61,32 +48,20 @@ exports.loginUser = async (request, response) => {
       attributes: {
         include: ["password"],
       },
-      include: [
-        // {
-        //   model: db.Book,
-        //   as: "favorites",
-        // },
-        {
-          model: db.Book,
-          as: "shoplist",
-        },
-      ],
     });
     if (!user) {
       response.status(404).send("User not found");
       return;
     }
-    if (user.password !== utils.cipher(password)) {
+    if (user.password !== pass.cipher(password)) {
       response.status(404).send("Invalid password");
       return;
     }
-    const { id, favorites, shoplist } = user;
-    const createdtoken = utils.createToken(id);
+    const { id } = user;
+    const createdtoken = tokenCheck.createToken(id);
     user = user.toJSON();
-    // delete user.password;
-    // delete user.favorites;
-    // delete user.shoplist;
-    response.send({ user, token: createdtoken, shoplist, favorites });
+    delete user.password;
+    response.send({ user, token: createdtoken });
   } catch (err) {
     console.error("ERROR >>>>", err);
     response.status(500).send("Something went wrong");
@@ -96,31 +71,18 @@ exports.loginUser = async (request, response) => {
 exports.getByToken = async (request, response) => {
   try {
     const { authorization } = request.headers;
-    const id = utils.verifyToken(authorization.slice(7)).data;
+    const id = tokenCheck.verifyToken(authorization.slice(7)).data;
 
-    const user = await db.User.findByPk(id, {
-      include: [
-        {
-          model: db.Book,
-          as: "favorites",
-        },
-        {
-          model: db.Book,
-          as: "shoplist",
-        },
-      ],
-    });
+    const user = await db.User.findByPk(id);
 
     if (!user) {
       response.status(404).send("User not found");
       return;
     }
-    const createdtoken = utils.createToken(user.id);
+    const createdtoken = tokenCheck.createToken(user.id);
 
     response.send({ user, token: createdtoken });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log(err);
     response.status(500).send("Something went wrong");
   }
 };

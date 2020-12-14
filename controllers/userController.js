@@ -1,5 +1,5 @@
 const db = require("../models/index");
-const utils = require("../utils");
+const pass = require("../utils/password");
 
 exports.updateUser = async (request, response) => {
   try {
@@ -24,7 +24,7 @@ exports.updateUser = async (request, response) => {
       {
         email,
         login,
-        password: password ? utils.cipher(password) : user.password,
+        password: password ? pass.cipher(password) : user.password,
       },
       {
         where: id,
